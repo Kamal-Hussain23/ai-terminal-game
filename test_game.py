@@ -104,7 +104,9 @@ class TestBoundaryChecks:
 
     def test_cannot_move_down_from_edge(self):
         """Player should not move down when at bottom edge."""
-        # Move to bottom edge first (row 4)
+        import random
+        # Seed so hazard isn't in column 0 blocking the path down
+        random.seed(42)
         with patch("builtins.input", side_effect=["s", "s", "s", "s", "s", "quit"]):
             with patch("builtins.print"):
                 import importlib
@@ -192,3 +194,58 @@ class TestCollectible:
                 if game.player_row == game.collectible_row and game.player_col == game.collectible_col:
                     game.score += 1
                 assert game.score == 1
+
+
+class TestHazard:
+    def test_hazard_spawns_not_on_player(self):
+        """Hazard should not spawn on the player."""
+        import random
+        for seed in range(20):
+            random.seed(seed)
+            with patch("builtins.input", return_value="quit"):
+                with patch("builtins.print"):
+                    import importlib
+                    import game
+                    importlib.reload(game)
+                    assert not (game.hazard_row == 0 and game.hazard_col == 0), \
+                        f"Failed with seed {seed}"
+
+    def test_hazard_is_on_grid(self):
+        """Hazard should be within grid boundaries."""
+        import random
+        for seed in range(20):
+            random.seed(seed)
+            with patch("builtins.input", return_value="quit"):
+                with patch("builtins.print"):
+                    import importlib
+                    import game
+                    importlib.reload(game)
+                    assert 0 <= game.hazard_row < game.grid_size
+                    assert 0 <= game.hazard_col < game.grid_size
+
+    def test_hazard_spawns_not_on_collectible(self):
+        """Hazard and collectible should not overlap."""
+        import random
+        for seed in range(20):
+            random.seed(seed)
+            with patch("builtins.input", return_value="quit"):
+                with patch("builtins.print"):
+                    import importlib
+                    import game
+                    importlib.reload(game)
+                    assert not (game.hazard_row == game.collectible_row and
+                                game.hazard_col == game.collectible_col), \
+                        f"Failed with seed {seed}"
+
+    def test_game_over_on_hazard(self):
+        """Player should get Game Over when stepping on hazard."""
+        import random
+        # With seed 0, hazard is at (0, 2), so moving right twice hits it
+        random.seed(0)
+        with patch("builtins.input", side_effect=["d", "d", "quit"]):
+            with patch("builtins.print") as mock_print:
+                import importlib
+                import game
+                importlib.reload(game)
+                calls = [str(c) for c in mock_print.call_args_list]
+                assert any("GAME OVER" in c for c in calls), "Game Over message not found"

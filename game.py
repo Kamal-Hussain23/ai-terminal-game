@@ -10,16 +10,31 @@ win_score = 10
 
 
 def spawn_collectible():
-    """Spawn collectible at a random position not occupied by the player."""
+    """Spawn collectible at a random position not occupied by the player or hazard."""
     while True:
         row = random.randint(0, grid_size - 1)
         col = random.randint(0, grid_size - 1)
-        if row != player_row or col != player_col:
+        if (row != player_row or col != player_col) and (row != hazard_row or col != hazard_col):
             return row, col
 
 
-# Spawn the first collectible
-collectible_row, collectible_col = spawn_collectible()
+def spawn_hazard():
+    """Spawn hazard at a random position not occupied by the player or collectible."""
+    while True:
+        row = random.randint(0, grid_size - 1)
+        col = random.randint(0, grid_size - 1)
+        if (row != player_row or col != player_col) and (row != collectible_row or col != collectible_col):
+            return row, col
+
+
+# Initial spawn: collectible first (only checks player), then hazard (checks both)
+while True:
+    collectible_row = random.randint(0, grid_size - 1)
+    collectible_col = random.randint(0, grid_size - 1)
+    if collectible_row != player_row or collectible_col != player_col:
+        break
+
+hazard_row, hazard_col = spawn_hazard()
 
 # Main game loop
 while True:
@@ -33,6 +48,8 @@ while True:
                 print(" @ ", end="")  # Player position
             elif row == collectible_row and col == collectible_col:
                 print(" * ", end="")  # Collectible
+            elif row == hazard_row and col == hazard_col:
+                print(" K ", end="")  # Hazard
             else:
                 print(" . ", end="")  # Empty cell
         print()  # New line after each row
@@ -61,6 +78,13 @@ while True:
     elif user_input == "d":
         if player_col < grid_size - 1:
             player_col = player_col + 1
+
+    # Check if player hit the hazard
+    if player_row == hazard_row and player_col == hazard_col:
+        print("\n" + "=" * 40)
+        print("  GAME OVER!")
+        print("=" * 40)
+        break
 
     # Check if player collected the item
     if player_row == collectible_row and player_col == collectible_col:

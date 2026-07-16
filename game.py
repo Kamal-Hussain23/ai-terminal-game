@@ -1,97 +1,130 @@
 # Simple Text-Based Game on a 5x5 Grid
 import random
 
-# Player starts at position (0, 0)
-player_row = 0
-player_col = 0
-grid_size = 5
-score = 0
-win_score = 10
+GRID_SIZE = 5
+WIN_SCORE = 10
 
 
-def spawn_collectible():
+def spawn_collectible(player_row, player_col, hazard_row, hazard_col):
     """Spawn collectible at a random position not occupied by the player or hazard."""
     while True:
-        row = random.randint(0, grid_size - 1)
-        col = random.randint(0, grid_size - 1)
+        row = random.randint(0, GRID_SIZE - 1)
+        col = random.randint(0, GRID_SIZE - 1)
         if (row != player_row or col != player_col) and (row != hazard_row or col != hazard_col):
             return row, col
 
 
-def spawn_hazard():
+def spawn_hazard(player_row, player_col, collectible_row, collectible_col):
     """Spawn hazard at a random position not occupied by the player or collectible."""
     while True:
-        row = random.randint(0, grid_size - 1)
-        col = random.randint(0, grid_size - 1)
+        row = random.randint(0, GRID_SIZE - 1)
+        col = random.randint(0, GRID_SIZE - 1)
         if (row != player_row or col != player_col) and (row != collectible_row or col != collectible_col):
             return row, col
 
 
-# Initial spawn: collectible first (only checks player), then hazard (checks both)
-while True:
-    collectible_row = random.randint(0, grid_size - 1)
-    collectible_col = random.randint(0, grid_size - 1)
-    if collectible_row != player_row or collectible_col != player_col:
-        break
+def init_game():
+    """Reset all game state for a new game."""
+    player_row, player_col = 0, 0
+    score = 0
 
-hazard_row, hazard_col = spawn_hazard()
+    # Spawn collectible first (only needs to avoid player)
+    while True:
+        collectible_row = random.randint(0, GRID_SIZE - 1)
+        collectible_col = random.randint(0, GRID_SIZE - 1)
+        if collectible_row != player_row or collectible_col != player_col:
+            break
 
-# Main game loop
-while True:
-    # Clear the screen (works on most terminals)
+    # Spawn hazard (avoids player and collectible)
+    hazard_row, hazard_col = spawn_hazard(player_row, player_col, collectible_row, collectible_col)
+
+    return player_row, player_col, score, collectible_row, collectible_col, hazard_row, hazard_col
+
+
+def draw_grid(player_row, player_col, collectible_row, collectible_col, hazard_row, hazard_col, score):
+    """Draw the grid with all entities."""
     print("\n" * 50)
-
-    # Draw the grid
-    for row in range(grid_size):
-        for col in range(grid_size):
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
             if row == player_row and col == player_col:
-                print(" @ ", end="")  # Player position
+                print(" @ ", end="")
             elif row == collectible_row and col == collectible_col:
-                print(" * ", end="")  # Collectible
+                print(" * ", end="")
             elif row == hazard_row and col == hazard_col:
-                print(" K ", end="")  # Hazard
+                print(" K ", end="")
             else:
-                print(" . ", end="")  # Empty cell
-        print()  # New line after each row
-
-    print("\nScore: " + str(score) + " / " + str(win_score))
+                print(" . ", end="")
+        print()
+    print("\nScore: " + str(score) + " / " + str(WIN_SCORE))
     print("Player is at (" + str(player_row) + ", " + str(player_col) + ")")
     print("Type 'quit' to exit.")
 
-    # Wait for user input
-    user_input = input("\n> ")
 
-    if user_input == "quit":
-        print("Thanks for playing!")
-        break
+def handle_movement(user_input, player_row, player_col):
+    """Process WASD input and return new position."""
+    if user_input == "w" and player_row > 0:
+        player_row = player_row - 1
+    elif user_input == "s" and player_row < GRID_SIZE - 1:
+        player_row = player_row + 1
+    elif user_input == "a" and player_col > 0:
+        player_col = player_col - 1
+    elif user_input == "d" and player_col < GRID_SIZE - 1:
+        player_col = player_col + 1
+    return player_row, player_col
 
-    # Handle WASD movement
-    if user_input == "w":
-        if player_row > 0:
-            player_row = player_row - 1
-    elif user_input == "s":
-        if player_row < grid_size - 1:
-            player_row = player_row + 1
-    elif user_input == "a":
-        if player_col > 0:
-            player_col = player_col - 1
-    elif user_input == "d":
-        if player_col < grid_size - 1:
-            player_col = player_col + 1
 
-    # Check if player hit the hazard
-    if player_row == hazard_row and player_col == hazard_col:
-        print("\n" + "=" * 40)
-        print("  GAME OVER!")
-        print("=" * 40)
-        break
+def play_round():
+    """Play a single round of the game. Returns True to play again, False to quit."""
+    player_row, player_col, score, collectible_row, collectible_col, hazard_row, hazard_col = init_game()
+    game_active = True
 
-    # Check if player collected the item
-    if player_row == collectible_row and player_col == collectible_col:
-        score = score + 1
-        if score >= win_score:
+    while game_active:
+        draw_grid(player_row, player_col, collectible_row, collectible_col, hazard_row, hazard_col, score)
+
+        user_input = input("\n> ")
+
+        if user_input == "quit":
+            return False
+
+        # Handle movement
+        player_row, player_col = handle_movement(user_input, player_row, player_col)
+
+        # Check hazard collision
+        if player_row == hazard_row and player_col == hazard_col:
             print("\n" + "=" * 40)
-            print("  YOU WIN! Final Score: " + str(score))
+            print("  GAME OVER!")
             print("=" * 40)
+            game_active = False
+
+        # Check collectible pickup
+        if game_active and player_row == collectible_row and player_col == collectible_col:
+            score = score + 1
+            if score >= WIN_SCORE:
+                print("\n" + "=" * 40)
+                print("  YOU WIN! Final Score: " + str(score))
+                print("=" * 40)
+                game_active = False
+            else:
+                collectible_row, collectible_col = spawn_collectible(
+                    player_row, player_col, hazard_row, hazard_col
+                )
+
+    # Ask to play again
+    while True:
+        choice = input("\nPlay again? (y/n) > ").strip().lower()
+        if choice == "y":
+            return True
+        if choice == "n":
+            return False
+
+
+# Main game loop
+if __name__ == "__main__":
+    print("Welcome to the Grid Game!")
+    print("Collect * items. Avoid K hazards.")
+    print("Reach score " + str(WIN_SCORE) + " to win!\n")
+
+    while True:
+        if not play_round():
+            print("Thanks for playing!")
             break
-        collectible_row, collectible_col = spawn_collectible()

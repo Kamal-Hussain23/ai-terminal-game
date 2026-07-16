@@ -1,8 +1,17 @@
-# Simple Text-Based Game on a 5x5 Grid
+# Danger Dragon
 import random
 
 GRID_SIZE = 5
 WIN_SCORE = 10
+
+# Theme assets
+GAME_NAME = "Danger Dragon"
+STORY_INTRO = "Navigate the Dragon Rider to collect eggs."
+PLAYER_EMOJI = "🤠"
+COLLECTIBLE_EMOJI = "🥚"
+HAZARD_EMOJI = "🌋"
+WIN_MESSAGE = "yahoo! you win"
+LOSE_MESSAGE = "Ooh! You Lose!!"
 
 
 def spawn_collectible(player_row, player_col, hazard_row, hazard_col):
@@ -47,11 +56,11 @@ def draw_grid(player_row, player_col, collectible_row, collectible_col, hazard_r
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             if row == player_row and col == player_col:
-                print(" @ ", end="")
+                print(" " + PLAYER_EMOJI + " ", end="")
             elif row == collectible_row and col == collectible_col:
-                print(" * ", end="")
+                print(" " + COLLECTIBLE_EMOJI + " ", end="")
             elif row == hazard_row and col == hazard_col:
-                print(" K ", end="")
+                print(" " + HAZARD_EMOJI + " ", end="")
             else:
                 print(" . ", end="")
         print()
@@ -92,7 +101,7 @@ def play_round():
         # Check hazard collision
         if player_row == hazard_row and player_col == hazard_col:
             print("\n" + "=" * 40)
-            print("  GAME OVER!")
+            print("  " + LOSE_MESSAGE)
             print("=" * 40)
             game_active = False
 
@@ -101,7 +110,7 @@ def play_round():
             score = score + 1
             if score >= WIN_SCORE:
                 print("\n" + "=" * 40)
-                print("  YOU WIN! Final Score: " + str(score))
+                print("  " + WIN_MESSAGE + " Final Score: " + str(score))
                 print("=" * 40)
                 game_active = False
             else:
@@ -120,8 +129,11 @@ def play_round():
 
 # Main game loop
 if __name__ == "__main__":
-    print("Welcome to the Grid Game!")
-    print("Collect * items. Avoid K hazards.")
+    print("=" * 40)
+    print("  " + GAME_NAME)
+    print("=" * 40)
+    print(STORY_INTRO)
+    print("Collect " + COLLECTIBLE_EMOJI + " eggs. Avoid " + HAZARD_EMOJI + " hazards.")
     print("Reach score " + str(WIN_SCORE) + " to win!\n")
 
     while True:

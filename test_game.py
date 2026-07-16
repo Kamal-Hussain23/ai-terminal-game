@@ -115,7 +115,7 @@ class TestPlayRound:
             with patch("builtins.print") as mp:
                 assert play_round() is True
                 calls = [str(c) for c in mp.call_args_list]
-                assert any("GAME OVER" in c for c in calls)
+                assert any("Ooh! You Lose!!" in c for c in calls)
 
     def test_game_over_then_decline(self):
         """Game over should prompt and accept decline."""
@@ -126,7 +126,7 @@ class TestPlayRound:
             with patch("builtins.print") as mp:
                 assert play_round() is False
                 calls = [str(c) for c in mp.call_args_list]
-                assert any("GAME OVER" in c for c in calls)
+                assert any("Ooh! You Lose!!" in c for c in calls)
 
 
 class TestGameLoop:
@@ -159,3 +159,33 @@ class TestConstants:
     def test_win_score(self):
         from game import WIN_SCORE
         assert WIN_SCORE == 10
+
+
+class TestTheme:
+    def test_game_name(self):
+        from game import GAME_NAME
+        assert GAME_NAME == "Danger Dragon"
+
+    def test_story_intro(self):
+        from game import STORY_INTRO
+        assert STORY_INTRO == "Navigate the Dragon Rider to collect eggs."
+
+    def test_player_emoji(self):
+        from game import PLAYER_EMOJI
+        assert PLAYER_EMOJI == "\U0001f920"
+
+    def test_collectible_emoji(self):
+        from game import COLLECTIBLE_EMOJI
+        assert COLLECTIBLE_EMOJI == "\U0001f95a"
+
+    def test_hazard_emoji(self):
+        from game import HAZARD_EMOJI
+        assert HAZARD_EMOJI == "\U0001f30b"
+
+    def test_win_message(self):
+        from game import WIN_MESSAGE
+        assert WIN_MESSAGE == "yahoo! you win"
+
+    def test_lose_message(self):
+        from game import LOSE_MESSAGE
+        assert LOSE_MESSAGE == "Ooh! You Lose!!"

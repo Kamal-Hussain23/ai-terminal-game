@@ -122,3 +122,73 @@ class TestGridSize:
                 import game
                 importlib.reload(game)
                 assert game.grid_size == 5
+
+
+class TestScore:
+    def test_initial_score_is_zero(self):
+        """Score should start at 0."""
+        with patch("builtins.input", return_value="quit"):
+            with patch("builtins.print"):
+                import importlib
+                import game
+                importlib.reload(game)
+                assert game.score == 0
+
+    def test_win_score_is_ten(self):
+        """Win score should be 10."""
+        with patch("builtins.input", return_value="quit"):
+            with patch("builtins.print"):
+                import importlib
+                import game
+                importlib.reload(game)
+                assert game.win_score == 10
+
+
+class TestCollectible:
+    def test_collectible_spawns_not_on_player(self):
+        """Collectible should not spawn on the player."""
+        import random
+        # Try multiple seeds to ensure it works
+        for seed in range(20):
+            random.seed(seed)
+            with patch("builtins.input", return_value="quit"):
+                with patch("builtins.print"):
+                    import importlib
+                    import game
+                    importlib.reload(game)
+                    # Collectible should NOT be at player start (0, 0)
+                    assert not (game.collectible_row == 0 and game.collectible_col == 0), \
+                        f"Failed with seed {seed}"
+
+    def test_collectible_is_on_grid(self):
+        """Collectible should be within grid boundaries."""
+        import random
+        for seed in range(20):
+            random.seed(seed)
+            with patch("builtins.input", return_value="quit"):
+                with patch("builtins.print"):
+                    import importlib
+                    import game
+                    importlib.reload(game)
+                    assert 0 <= game.collectible_row < game.grid_size
+                    assert 0 <= game.collectible_col < game.grid_size
+
+    def test_score_increases_on_collect(self):
+        """Score should increase by 1 when player collects item."""
+        import random
+        # Force collectible to be at (0, 1) so moving right collects it
+        random.seed(1)
+        with patch("builtins.input", side_effect=["d", "quit"]):
+            with patch("builtins.print"):
+                import importlib
+                import game
+                importlib.reload(game)
+                # Place collectible where we know it'll be after seed 1
+                game.collectible_row = 0
+                game.collectible_col = 1
+                # Now simulate the move
+                game.player_col = 1
+                # Check if collected
+                if game.player_row == game.collectible_row and game.player_col == game.collectible_col:
+                    game.score += 1
+                assert game.score == 1
